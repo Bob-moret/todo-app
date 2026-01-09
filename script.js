@@ -1,6 +1,7 @@
 // Get references to HTML elements
 const form = document.getElementById('todo-form');
 const input = document.getElementById('todo-input');
+const prioritySelect = document.getElementById('priority-select');
 const todoList = document.getElementById('todo-list');
 
 // Load saved todos when page loads
@@ -13,20 +14,23 @@ form.addEventListener('submit', function(event) {
 
     // Get the input value and remove extra spaces
     const taskText = input.value.trim();
+    const priority = prioritySelect.value;
 
     // Only add if there's text
     if (taskText) {
-        addTodoItem(taskText);
+        addTodoItem(taskText, false, priority);
         saveTodos();
         input.value = ''; // Clear the input
+        prioritySelect.value = 'medium'; // Reset to default
     }
 });
 
 // Create and add a todo item to the list
-function addTodoItem(text, completed = false) {
+function addTodoItem(text, completed = false, priority = 'medium') {
     // Create the list item
     const li = document.createElement('li');
     li.className = 'todo-item';
+    li.dataset.priority = priority; // Store priority in data attribute
     if (completed) {
         li.classList.add('completed');
     }
@@ -39,6 +43,11 @@ function addTodoItem(text, completed = false) {
         li.classList.toggle('completed');
         saveTodos();
     });
+
+    // Create priority badge
+    const badge = document.createElement('span');
+    badge.className = 'priority-badge ' + priority;
+    badge.textContent = priority;
 
     // Create text span
     const span = document.createElement('span');
@@ -55,6 +64,7 @@ function addTodoItem(text, completed = false) {
 
     // Add elements to the list item
     li.appendChild(checkbox);
+    li.appendChild(badge);
     li.appendChild(span);
     li.appendChild(deleteBtn);
 
@@ -69,8 +79,9 @@ function saveTodos() {
 
     items.forEach(function(item) {
         todos.push({
-            text: item.querySelector('span').textContent,
-            completed: item.classList.contains('completed')
+            text: item.querySelector('span:not(.priority-badge)').textContent,
+            completed: item.classList.contains('completed'),
+            priority: item.dataset.priority || 'medium'
         });
     });
 
@@ -84,7 +95,7 @@ function loadTodos() {
     if (saved) {
         const todos = JSON.parse(saved);
         todos.forEach(function(todo) {
-            addTodoItem(todo.text, todo.completed);
+            addTodoItem(todo.text, todo.completed, todo.priority || 'medium');
         });
     }
 }
