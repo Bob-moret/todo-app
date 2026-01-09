@@ -61,6 +61,19 @@ h1 {
     background-color: #0056b3;
 }
 
+#priority-select {
+    padding: 12px 10px;
+    font-size: 14px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    outline: none;
+    cursor: pointer;
+}
+
+#priority-select:focus {
+    border-color: #007bff;
+}
+
 /* Todo list styles */
 #todo-list {
     list-style: none;
@@ -104,4 +117,29 @@ h1 {
 
 .todo-item .delete-btn:hover {
     background: #c82333;
+}
+
+/* Priority badge styles */
+.priority-badge {
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 10px;
+    text-transform: uppercase;
+}
+
+.priority-badge.high {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.priority-badge.medium {
+    background: #fff3e0;
+    color: #ef6c00;
+}
+
+.priority-badge.low {
+    background: #e8f5e9;
+    color: #2e7d32;
 }
