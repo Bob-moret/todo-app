@@ -1,101 +1,217 @@
-// Get references to HTML elements
+// ============================================
+// TASKFLOW - Enhanced Todo Application
+// ============================================
+
+// DOM Elements
 const form = document.getElementById('todo-form');
 const input = document.getElementById('todo-input');
-const prioritySelect = document.getElementById('priority-select');
+const priorityButtons = document.querySelectorAll('.priority-btn');
 const todoList = document.getElementById('todo-list');
+const emptyState = document.getElementById('empty-state');
+const filterButtons = document.querySelectorAll('.filter-btn');
+const statTotal = document.querySelector('#stat-total .stat-value');
+const statDone = document.querySelector('#stat-done .stat-value');
 
-// Load saved todos when page loads
-document.addEventListener('DOMContentLoaded', loadTodos);
+// State
+let currentPriority = 'medium';
+let currentFilter = 'all';
 
-// Handle form submission
-form.addEventListener('submit', function(event) {
-    // Prevent the form from refreshing the page
+// ============================================
+// INITIALIZATION
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+    loadTodos();
+    updateStats();
+    updateEmptyState();
+});
+
+// ============================================
+// EVENT LISTENERS
+// ============================================
+
+// Form submission
+form.addEventListener('submit', (event) => {
     event.preventDefault();
-
-    // Get the input value and remove extra spaces
     const taskText = input.value.trim();
-    const priority = prioritySelect.value;
 
-    // Only add if there's text
     if (taskText) {
-        addTodoItem(taskText, false, priority);
+        addTodoItem(taskText, false, currentPriority);
         saveTodos();
-        input.value = ''; // Clear the input
-        prioritySelect.value = 'medium'; // Reset to default
+        updateStats();
+        updateEmptyState();
+        input.value = '';
+        input.focus();
     }
 });
 
-// Create and add a todo item to the list
+// Priority button selection
+priorityButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        priorityButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentPriority = btn.dataset.value;
+    });
+});
+
+// Filter buttons
+filterButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        filterButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        applyFilter();
+    });
+});
+
+// ============================================
+// TODO ITEM CREATION
+// ============================================
 function addTodoItem(text, completed = false, priority = 'medium') {
-    // Create the list item
     const li = document.createElement('li');
     li.className = 'todo-item';
-    li.dataset.priority = priority; // Store priority in data attribute
+    li.dataset.priority = priority;
     if (completed) {
         li.classList.add('completed');
     }
 
-    // Create checkbox
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.checked = completed;
-    checkbox.addEventListener('change', function() {
+    // Staggered animation delay for loaded items
+    const existingItems = todoList.querySelectorAll('.todo-item').length;
+    li.style.animationDelay = `${existingItems * 0.05}s`;
+
+    li.innerHTML = `
+        <label class="checkbox-wrapper">
+            <input type="checkbox" ${completed ? 'checked' : ''}>
+            <span class="checkbox-custom"></span>
+        </label>
+        <div class="priority-indicator ${priority}"></div>
+        <div class="task-content">
+            <span class="task-text">${escapeHtml(text)}</span>
+        </div>
+        <button class="delete-btn" aria-label="Delete task">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18"></path>
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+            </svg>
+        </button>
+    `;
+
+    // Checkbox event
+    const checkbox = li.querySelector('input[type="checkbox"]');
+    checkbox.addEventListener('change', () => {
         li.classList.toggle('completed');
         saveTodos();
+        updateStats();
+        applyFilter();
     });
 
-    // Create priority badge
-    const badge = document.createElement('span');
-    badge.className = 'priority-badge ' + priority;
-    badge.textContent = priority;
-
-    // Create text span
-    const span = document.createElement('span');
-    span.textContent = text;
-
-    // Create delete button
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'delete-btn';
-    deleteBtn.textContent = 'Delete';
-    deleteBtn.addEventListener('click', function() {
-        li.remove();
-        saveTodos();
+    // Delete button event
+    const deleteBtn = li.querySelector('.delete-btn');
+    deleteBtn.addEventListener('click', () => {
+        li.style.transform = 'translateX(20px)';
+        li.style.opacity = '0';
+        setTimeout(() => {
+            li.remove();
+            saveTodos();
+            updateStats();
+            updateEmptyState();
+        }, 200);
     });
 
-    // Add elements to the list item
-    li.appendChild(checkbox);
-    li.appendChild(badge);
-    li.appendChild(span);
-    li.appendChild(deleteBtn);
-
-    // Add to the list
     todoList.appendChild(li);
+    applyFilter();
 }
 
-// Save todos to browser storage
+// ============================================
+// FILTERS
+// ============================================
+function applyFilter() {
+    const items = todoList.querySelectorAll('.todo-item');
+
+    items.forEach(item => {
+        const isCompleted = item.classList.contains('completed');
+        let shouldShow = false;
+
+        switch (currentFilter) {
+            case 'all':
+                shouldShow = true;
+                break;
+            case 'active':
+                shouldShow = !isCompleted;
+                break;
+            case 'completed':
+                shouldShow = isCompleted;
+                break;
+        }
+
+        item.style.display = shouldShow ? 'flex' : 'none';
+    });
+
+    updateEmptyState();
+}
+
+// ============================================
+// STATS
+// ============================================
+function updateStats() {
+    const items = todoList.querySelectorAll('.todo-item');
+    const completedItems = todoList.querySelectorAll('.todo-item.completed');
+
+    statTotal.textContent = items.length;
+    statDone.textContent = completedItems.length;
+}
+
+// ============================================
+// EMPTY STATE
+// ============================================
+function updateEmptyState() {
+    const visibleItems = todoList.querySelectorAll('.todo-item[style*="display: flex"], .todo-item:not([style*="display"])');
+    const hasVisibleItems = Array.from(visibleItems).some(item => {
+        const style = window.getComputedStyle(item);
+        return style.display !== 'none';
+    });
+
+    if (todoList.children.length === 0 || !hasVisibleItems) {
+        emptyState.classList.add('visible');
+    } else {
+        emptyState.classList.remove('visible');
+    }
+}
+
+// ============================================
+// LOCAL STORAGE
+// ============================================
 function saveTodos() {
     const todos = [];
     const items = todoList.querySelectorAll('.todo-item');
 
-    items.forEach(function(item) {
+    items.forEach(item => {
         todos.push({
-            text: item.querySelector('span:not(.priority-badge)').textContent,
+            text: item.querySelector('.task-text').textContent,
             completed: item.classList.contains('completed'),
             priority: item.dataset.priority || 'medium'
         });
     });
 
-    localStorage.setItem('todos', JSON.stringify(todos));
+    localStorage.setItem('taskflow-todos', JSON.stringify(todos));
 }
 
-// Load todos from browser storage
 function loadTodos() {
-    const saved = localStorage.getItem('todos');
+    const saved = localStorage.getItem('taskflow-todos');
 
     if (saved) {
         const todos = JSON.parse(saved);
-        todos.forEach(function(todo) {
+        todos.forEach(todo => {
             addTodoItem(todo.text, todo.completed, todo.priority || 'medium');
         });
     }
+}
+
+// ============================================
+// UTILITIES
+// ============================================
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
