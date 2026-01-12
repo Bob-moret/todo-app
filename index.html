@@ -105,6 +105,73 @@
         </main>
     </div>
 
+    <!-- Task Detail Modal -->
+    <div class="modal-overlay" id="task-modal-overlay">
+        <div class="modal" id="task-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-title">Task Details</h2>
+                <button class="modal-close-btn" id="modal-close" aria-label="Close modal">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Task Title -->
+                <div class="modal-section">
+                    <label class="modal-label">Task</label>
+                    <p class="modal-task-title" id="modal-task-title"></p>
+                </div>
+
+                <!-- Due Date -->
+                <div class="modal-section">
+                    <label class="modal-label" for="modal-due-date">Due Date</label>
+                    <input type="date" id="modal-due-date" class="modal-input modal-date-input">
+                </div>
+
+                <!-- Notes/Description -->
+                <div class="modal-section">
+                    <label class="modal-label" for="modal-notes">Notes</label>
+                    <textarea
+                        id="modal-notes"
+                        class="modal-input modal-textarea"
+                        placeholder="Add notes or additional details..."
+                        rows="4"
+                    ></textarea>
+                </div>
+
+                <!-- Subtasks/Checklist -->
+                <div class="modal-section">
+                    <label class="modal-label">Checklist</label>
+                    <ul class="subtask-list" id="subtask-list">
+                        <!-- Subtasks rendered dynamically -->
+                    </ul>
+                    <div class="subtask-add">
+                        <input
+                            type="text"
+                            id="subtask-input"
+                            class="modal-input subtask-input"
+                            placeholder="Add a subtask..."
+                        >
+                        <button type="button" class="subtask-add-btn" id="subtask-add-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-secondary" id="modal-cancel">Cancel</button>
+                <button class="modal-btn modal-btn-primary" id="modal-save">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
